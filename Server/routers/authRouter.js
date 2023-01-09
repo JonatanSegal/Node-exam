@@ -3,15 +3,10 @@ import db from "../database/connection.js"
 import bcrypt from "bcrypt"
 import { signUpMail } from "../services/emailService.js"
 import { containsNumbers } from "../services/passwordService.js"
+import { User } from "../DTO/userDTO.js"
 
 const saltRounds = 12
 const router = Router()
-
-//GET - used to see all users in db REMOVE AT SOME POINT
-router.get("/api/sign-up", async (req, res) => {
-    const DATA = await db.all("SELECT * FROM users")
-    res.send(DATA)
-})
 
 router.get("/api/login", (req, res) => {
     res.send({message: "You are about to login"})
@@ -31,29 +26,29 @@ router.get("/api/authorized", (req, res ) => {
 
 //POST - Sign up new user
 router.post("/api/sign-up", async (req, res) => {
-    const body = req.body
+    const user = new User(req.body)
     
-    if (!body.name) return res.status(400).send({ message: "Name not defined" })
-    if (!body.email) return res.status(400).send({ message: "Email not defined" })
-    if (!body.password) return res.status(400).send({ message: "Password not defined" })
-    if(body.password.length < 5 || containsNumbers(body.password) !== true) return res.status(400).send({message: "Password must be 5 characters and contain 1 number"})
+    if (!user.name) return res.status(400).send({ message: "Name not defined" })
+    if (!user.email) return res.status(400).send({ message: "Email not defined" })
+    if (!user.password) return res.status(400).send({ message: "Password not defined" })
+    if(user.password.length < 5 || containsNumbers(user.password) !== true) return res.status(400).send({message: "Password must be 5 characters and contain 1 number"})
    
     try{
-        const result = await db.get(`SELECT * FROM users WHERE email = ?`, body.email)
+        const result = await db.get(`SELECT * FROM users WHERE email = ?`, user.email)
         
         if(result === undefined){             
-            const encryptedpassword = await bcrypt.hash(body.password, saltRounds)
-            body.password = encryptedpassword
+            const encryptedpassword = await bcrypt.hash(user.password, saltRounds)
+            user.password = encryptedpassword
         
-            const updateDB = await db.run(`INSERT INTO users(name, email, password) VALUES (?,?,?) `,[body.name, body.email, body.password])
+            const updateDB = await db.run(`INSERT INTO users(name, email, password, role) VALUES (?,?,?,?) `,[user.name, user.email, user.password, "user"])
             console.log(updateDB.changes)
-            signUpMail(body.email, body.name)    
+            signUpMail(user.email, user.name)    
             .then(result => {
                 res.status(200).send({Link: result})})
             .catch(console.error)
         }
         else{
-            if(result.email === body.email){
+            if(result.email === user.email){
                 return res.status(403).send({message: "User already exists"})
             }
         }
@@ -64,23 +59,27 @@ router.post("/api/sign-up", async (req, res) => {
 
 //POST - Login
 router.post("/api/login", async (req,res) => {
-    const body = req.body
-    if (!body.email) return res.status(400).send({ message: "Email not defined" })
-    if (!body.password) return res.status(400).send({ message: "Password not defined" })
+    const user = new User(req.body)
+
+    if (!user.email) return res.status(400).send({ message: "Email not defined" })
+    if (!user.password) return res.status(400).send({ message: "Password not defined" })
 
     try{
-        const result = await db.get(`SELECT * FROM users WHERE email = ?`, body.email)
+        const result = await db.get(`SELECT * FROM users WHERE email = ?`, user.email)
+
         
         if(result === undefined){
             return res.sendStatus(404).send({message: "User not found"})
         }
         else{
             const encryptedpassword = result.password
-            const loginPassword = body.password
+            const loginPassword = user.password
             const passwordComparison = await bcrypt.compare(loginPassword, encryptedpassword)
             
             if(passwordComparison  === true){
+                user.id = result.id
                 req.session.isLoggedIn = true
+                req.session.userID =  user.id
                 return res.sendStatus(200).send({message: "You are logged in"})
             }
             else {

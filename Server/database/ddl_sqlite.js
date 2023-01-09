@@ -36,7 +36,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255),
     email VARCHAR(255),
-    password VARCHAR(255)
+    password VARCHAR(255),
+    role VARCHAR(255)
 )`)
 
 db.exec(`CREATE TABLE IF NOT EXISTS classes (
@@ -99,8 +100,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS monster_spells (
 
 //seed the database
 if(isInDeleteMode){
-db.run(`INSERT INTO users (name, email, password)
-    VALUES ("Fumio","Fumio@mail.com", "$2b$12$cz207WbhUPTq9aw8v.POGOfK3VV8mvJ.ym08QKYIHyhog86JI9T0u")`)
+db.run(`INSERT INTO users (name, email, password, role)
+    VALUES ("Fumio","Fumio@mail.com", "$2b$12$cz207WbhUPTq9aw8v.POGOfK3VV8mvJ.ym08QKYIHyhog86JI9T0u", "admin")`)
 
 db.run(`INSERT INTO classes (name, hp, mp, atk, level_multiplier)
     VALUES ("Warrior", 120, 40, 10, 1.3)`)
@@ -109,7 +110,13 @@ db.run(`INSERT INTO characters (name, level, user_id, class_id)
     VALUES ("Fumi", 1, 1, 1)`)
 
 db.run(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
-    VALUES ("Goblin", "medium", 80, 20, 4, 1.15)`)
+    VALUES ("Goblin", "normal", 80, 20, 4, 1.15)`)
+
+db.run(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
+    VALUES ("Slime", "normal", 40, 0, 2, 1.1)`)
+
+db.run(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
+    VALUES ("Dragon", "boss", 140, 80, 12, 1.15)`)
 
 db.run (`INSERT INTO spells (name, mp_cost) 
     VALUES ("Heavy swing", 15)`)

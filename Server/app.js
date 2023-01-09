@@ -33,9 +33,12 @@ const loginLimit = rateLimit({
 })
 app.use("/api/login", loginLimit)
 
-
+import adminRouter from "./routers/adminRouter.js"
+app.use(adminRouter)
 import authRouter from "./routers/authRouter.js"
 app.use(authRouter)
+import gameRouter from "./routers/gameRouter.js"
+app.use(gameRouter)
 
 
 app.get("*", (req, res) => {
