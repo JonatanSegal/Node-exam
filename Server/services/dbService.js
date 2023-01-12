@@ -40,7 +40,7 @@ export async function getMonsterOnType(data){
 
 
 export async function updateUser(data){
-    return await db.run(`UPDATE users SET name=?, email=?, password=?, role=? WHERE id=?`,[data] )
+    return await db.run(`UPDATE users SET name=?, email=?, password=?, role=? WHERE id=?`,[data.name, data.email, data.password, data.role, data.userid] )
 }
 
 

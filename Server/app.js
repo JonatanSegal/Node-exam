@@ -18,6 +18,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false }
   }))
+  app.use(express.static("public"))
 
 const generalLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
