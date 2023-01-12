@@ -1,7 +1,7 @@
 <script>
     import {Router, Link, Route} from "svelte-navigator"
     import {BASE_URL,IS_LOGGED_IN} from "./store/globals"
-    import { SvelteToast, toast } from '@zerodevx/svelte-toast'
+    import { SvelteToast, toast } from "@zerodevx/svelte-toast"
 
     import Home from "./pages/Home/Home.svelte"
     import Game from "./pages/Game/Game.svelte"

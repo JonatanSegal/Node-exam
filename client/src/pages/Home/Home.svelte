@@ -23,6 +23,5 @@
     h1{
         padding-top: 20px;
         margin:0%;
-        height: 100%;
     }
 </style>
