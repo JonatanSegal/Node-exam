@@ -1,6 +1,6 @@
 <script>
     import {Router, Link, Route} from "svelte-navigator"
-    import {BASE_URL,IS_LOGGED_IN} from "./store/globals"
+    import {BASE_URL,IS_LOGGED_IN, IS_ADMIN} from "./store/globals"
     import { SvelteToast, toast } from "@zerodevx/svelte-toast"
 
     import Home from "./pages/Home/Home.svelte"
@@ -10,6 +10,17 @@
     import Login from "./pages/Login/Login.svelte"
 
     import Logo from "./images/util/shield.png"
+
+
+    function logOut() {
+    fetch(`${$BASE_URL}/api/logout`, {
+      credentials: "include"
+      })
+      IS_LOGGED_IN.set(false)
+      IS_ADMIN.set(false)
+      toast.push("Logged out")
+  }
+
 </script>
 
 <Router>
@@ -24,15 +35,24 @@
       <li class="link-item">
         <Link to="/game">Game</Link>
       </li>
-      <li class="link-item">
-        <Link to="/admin">Admin</Link>
-      </li>
+      {#if $IS_ADMIN.valueOf() === true }
+        <li class="link-item">
+          <Link to="/admin">Admin</Link>
+        </li> 
+      {/if}
+
+    {#if $IS_LOGGED_IN.valueOf() !== true}
       <li class="link-item-right">
         <Link to="/login">Login</Link>
       </li>
       <li class="link-item-right">
         <Link to="/signup">Signup</Link>
       </li>
+    {:else}
+      <li class="link-item-right">
+        <Link to="/" on:click={logOut}>Log out</Link>
+      </li>
+    {/if}
     </ul>
   </nav>
 
@@ -45,7 +65,7 @@
   </div>
 </Router>
 
-<SvelteToast/>
+<SvelteToast options={{ reversed: true, intro: { y: -64 } }}/>
 
 <style>
   .navbar {

@@ -13,13 +13,13 @@ export async function generateMonster(character){
         const boss = new Character(await dbService.getMonsterOnType("boss"))
         return boss
     }else{
-       return console.log("Send slime or goblin") 
+        const monster = new Character(await dbService.getRandomNormalMonster("normal"))
+       return monster 
     }
 }
 
 
 export async function createCharacter(data){
     const newCharacter = await dbService.createCharacter(data)
-
-    return console.log(newCharacter.changes)
+    return newCharacter
 }

@@ -1,20 +1,70 @@
 <script>
     import {onMount} from "svelte"
     import {BASE_URL,IS_LOGGED_IN} from "../../store/globals"
-    import { SvelteToast, toast } from "@zerodevx/svelte-toast"
-    import auth,{loginCheck} from "../Page_utils/auth.svelte"
+    import { toast } from "@zerodevx/svelte-toast"
     import guard from "../../images/util/soldier.png"
+    import cross from "../../images/util/cross-swords.png"
+    import warrior from "../../images/classes/warrior.png"
+    import paladin from "../../images/classes/paladin.png"
+
+    let playerCharacter;
+    let monsterCharacter;
+    let hasCharacter = false
+
+    async function loginCheck(){
+        const response = await fetch(`${$BASE_URL}/api/authorized`,{
+            method: "GET",
+            credentials: "include"
+        })
+        if(response.status === 200 ){
+            return IS_LOGGED_IN.set(true)
+        }else{
+            toast.push('Please login to play the game')
+            return 
+        }
+    }
+    onMount(loginCheck)
+
+ if($IS_LOGGED_IN.valueOf() === true) {  
+    async function getCharacter(){
+        const response = await fetch(`${$BASE_URL}/api/character`,{
+            method: "GET",
+            credentials: "include"
+        })
+        const responseJSON = await response.json()
+        if(response.status === 200){
+            hasCharacter = true
+            playerCharacter = responseJSON
+            console.log(playerCharacter)
+
+        }
+    }
+   onMount(getCharacter) 
+ }
+
 </script>
 
 
 <div class="content">
     <h1>Game page</h1>
-    {#if $IS_LOGGED_IN.valueOf}
+    {#if $IS_LOGGED_IN.valueOf() !== true}
         <img id="guard" src={guard} alt="guard">
         <h2>HOLD RIGHT THERE!</h2>
         <h3>You are do not seem well equiped to face the journy ahead. Please Sign-up/login in to travel further</h3>
     {:else}
-        <button>Game start</button>
+        {#if hasCharacter === false}
+        <img id="cross" src={cross} alt="cross">
+        <br>
+        <button>Create character</button>
+        {:else}
+            {#if playerCharacter.character.class === "Warrior"}
+             <img src={warrior} alt="class-img" />
+            {:else}
+             <img src={paladin} alt="class-img" />
+            {/if}
+            <br>
+            <button>Game start</button>
+        {/if}
     {/if}
 </div>
 

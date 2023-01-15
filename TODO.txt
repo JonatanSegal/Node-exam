@@ -11,4 +11,4 @@ What need to be done:
     - if no character
     - if not logged in
 - Game actions
-- Adming options
+- Admin options

@@ -4,6 +4,7 @@ import bcrypt from "bcrypt"
 import { signUpMail } from "../services/emailService.js"
 import { containsNumbers } from "../services/passwordService.js"
 import { User } from "../DTO/userDTO.js"
+import { createUser,getUserOnEmail } from "../services/dbService.js"
 
 const saltRounds = 12
 const router = Router()
@@ -40,8 +41,7 @@ router.post("/api/sign-up", async (req, res) => {
             const encryptedpassword = await bcrypt.hash(user.password, saltRounds)
             user.password = encryptedpassword
         
-            const updateDB = await db.run(`INSERT INTO users(name, email, password, role) VALUES (?,?,?,?) `,[user.name, user.email, user.password, "user"])
-            console.log(updateDB.changes)
+            await createUser(user)
             signUpMail(user.email, user.name)    
             .then(result => {
                 res.status(200).send({Link: result})})
@@ -65,11 +65,11 @@ router.post("/api/login", async (req,res) => {
     if (!user.password) return res.status(400).send({ message: "Password not defined" })
 
     try{
-        const result = await db.get(`SELECT * FROM users WHERE email = ?`, user.email)
+        const result = await getUserOnEmail(user.email)
 
         
         if(result === undefined){
-            return res.sendStatus(404).send({message: "User not found"})
+            return res.status(404).send({message: "User not found"})
         }
         else{
             const encryptedpassword = result.password
@@ -78,12 +78,16 @@ router.post("/api/login", async (req,res) => {
             
             if(passwordComparison  === true){
                 user.id = result.id
+                user.role = result.role
+                if(user.role === "admin"){
+                    req.session.isAdmin = true
+                }
                 req.session.isLoggedIn = true
                 req.session.userID =  user.id
-                return res.sendStatus(200).send({message: "You are logged in"})
+                return res.status(200).send({role:user.role})
             }
             else {
-                return res.sendStatus(401).send({message: "Passwords didn't match"})
+                return res.status(401).send({message: "Passwords didn't match"})
             }
         }
     }catch{

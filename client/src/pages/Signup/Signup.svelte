@@ -1,5 +1,78 @@
 <script>
- import magician from "../../images/util/magician.png"
+    import { toast } from '@zerodevx/svelte-toast'
+    import { navigate } from 'svelte-navigator'
+    import { BASE_URL } from '../../store/globals.js'
+
+
+    import magician from "../../images/util/magician.png"
+
+    let name = ""
+    let email = ""
+    let password = ""
+
+    function containsNumbers(str){
+        return /[0-9]/.test(str)
+    }
+
+    async function signUp(){
+    if(name !== "" && email !== "" && password !== ""){
+        if(password.length < 5 || containsNumbers(password) !== true){
+            toast.push('Password must be 5 characters and have at least 1 number',{
+                theme: {
+                        '--toastColor': 'white',
+                        '--toastBackground': '#a60202',
+                        '--toastBarBackground': '#570404'
+                    },
+                duration: 6000        
+            })
+            return
+        }
+
+        const response = await fetch(`${$BASE_URL}/api/sign-up`,{
+            method: "POST",
+            credentials: "include",
+            body: JSON.stringify({
+                name,
+                email,
+                password
+            }),
+            headers: {
+                "Content-type": "application/json"
+            }
+        })
+
+        if(response.status === 403) {
+            toast.push("User already exists", {
+                theme: {
+                    '--toastColor': 'white',
+                    '--toastBackground': '#a60202',
+                    '--toastBarBackground': '#570404'
+                }    
+            })
+        return
+        }
+        else if(response.status === 200){
+            const emailLink = await response.json()
+            toast.push(`Sign-up successful, conmfirmation <a id="email-link" href="${emailLink.Link}" style="color:#747bff">email</a>`,{
+                duration: 6000
+            })
+            navigate("/", { replace: false });
+            }
+        }           
+    }
+
+    function isFieldsEmpty(){
+        if(name === "" || email === "" || password === ""){
+            toast.push('A name, email and password is required. Please make sure the fields are filled out', {
+                theme: {
+                        '--toastColor': 'white',
+                        '--toastBackground': '#a60202',
+                        '--toastBarBackground': '#570404'
+                    },
+                duration: 6000        
+            })
+        }
+    } 
 </script>
 
 
@@ -10,24 +83,24 @@
             <img src={magician} alt="guide">
         </div>
         <div class="column" id="form-column">
-            <form >
+            <form on:submit|preventDefault={signUp}>
                 <label>
                     Name 
-                    <input type="text" name="name" id="name-id" required  /> 
+                    <input type="text" name="name" id="name-id" required bind:value={name} /> 
                 </label>
         
                 <label>
                     Email
-                    <input type="email" name="email" id="email-id" required /> 
+                    <input type="email" name="email" id="email-id" required bind:value={email} /> 
                     <span hidden>Error message</span>
                 </label>
                 
                 <label>
                     Password 
-                    <input type="password" name="password" id="password-id" required />
+                    <input type="password" name="password" id="password-id" required bind:value={password} />
                 </label>
                 <label>
-                <button type="submit"> Sign up </button>
+                <button type="submit"on:click={isFieldsEmpty}> Sign up </button>
                 </label>
             </form>
         </div>

@@ -13,6 +13,11 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+  --toastContainerTop: 0.5rem;
+  --toastContainerRight: 0.5rem;
+  --toastContainerBottom: auto;;
+  --toastContainerLeft: calc(50vw - 8rem);
+  --toastWidth: 20rem
 }
 
 a {

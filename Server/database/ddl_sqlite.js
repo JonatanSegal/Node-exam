@@ -53,6 +53,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS characters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
     level INTEGER NOT NULL,
+    xp INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     class_id INTEGER NOT NULL,
     FOREIGN KEY (user_id)
@@ -106,8 +107,8 @@ db.run(`INSERT INTO users (name, email, password, role)
 db.run(`INSERT INTO classes (name, hp, mp, atk, level_multiplier)
     VALUES ("Warrior", 120, 40, 10, 1.3)`)
 
-db.run(`INSERT INTO characters (name, level, user_id, class_id)
-    VALUES ("Fumi", 1, 1, 1)`)
+db.run(`INSERT INTO characters (name, level, user_id, xp, class_id)
+    VALUES ("Fumi", 1, 1, 0, 1)`)
 
 db.run(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
     VALUES ("Goblin", "normal", 80, 20, 4, 1.15)`)
