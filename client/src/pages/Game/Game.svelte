@@ -1,5 +1,6 @@
 <script>
-    import {io} from "socket.io-client"
+    //import {io} from "socket.io-client"
+    import socket from "../../util/socketConnection"
     import {onMount} from "svelte"
     import { navigate } from 'svelte-navigator'
     import {BASE_URL,IS_LOGGED_IN} from "../../store/globals"
@@ -9,8 +10,20 @@
     import guard from "../../images/util/soldier.png"
     import warrior from "../../images/classes/warrior.png"
     import paladin from "../../images/classes/paladin.png"
+    import goblin from "../../images/monsters/goblin.png"
+    import slime from "../../images/monsters/slime.png"
+    import dragon from "../../images/monsters/dragon.png"
     
-  
+    let connected = false
+
+    const imageMap = new Map()
+    imageMap.set('Guard', guard)
+    imageMap.set('Warrior', warrior)
+    imageMap.set('Paladin', paladin)
+    imageMap.set('Goblin', goblin)
+    imageMap.set('Slime', slime)
+    imageMap.set('Dragon', dragon)
+
     let playerCharacter
     let monsterCharacter
     let hasCharacter = false
@@ -21,6 +34,7 @@
     let classid = 1
 
     async function loginCheck(){
+        connected =false
         const response = await fetch(`${$BASE_URL}/api/authorized`,{
             method: "GET",
             credentials: "include"
@@ -44,7 +58,6 @@
             const responseJSON = await response.json()
             hasCharacter = true
             playerCharacter = responseJSON
-            console.log(playerCharacter)
         }
         if(response.status === 204){
             toast.push("Looks like you don't have character lets fix that")
@@ -60,6 +73,7 @@
         })
         const responseJSON = await response.json()
         classes = responseJSON
+        console.log(classes)
  }
 
  async function createCharacter(){
@@ -106,20 +120,26 @@
         }
     } 
 
+    function attack(){
+        console.log("pressed")
+        socket.emit("player-attack", [playerCharacter.character.atk, monsterCharacter.hp])
+    }
 
+    function start(){   
+        if(socket.connected){
+            connected = true
+        }
+        socket.on("connect_error", () => {
+            connected = false
+        })
 
-function connect(){   
-    const socket = io($BASE_URL)
-    socket.on('connected',(data) =>{
-        console.log(socket.connected)
-    })
-    socket.on("game-started", (data) =>{
-        console.log("game started")
-    })
-    socket.emit("game-start", (data) =>{
-        console.log(socket.id)
-        console.log(socket.connected)}
-    )}
+        socket.on("game-started", (data) =>{
+            monsterCharacter = data
+            console.log("game started")
+        })
+        socket.emit("game-start",  playerCharacter)
+    }
+
 
 </script>
 
@@ -131,16 +151,16 @@ function connect(){
         <h2>HOLD RIGHT THERE!</h2>
         <h3>You are do not seem well equiped to face the journy ahead. Please Sign-up/login in to travel further</h3>
     {:else}
-        {#if hasCharacter === false}
+        {#if !hasCharacter}
         <h2>Create your character</h2>
         <div class="row">
             {#if classid === 1 }
             <div class="column">
-                <img id="cross" src={warrior} alt="cross">
+                <img  src={warrior} alt="cross">
             </div>
             {:else}
             <div class="column">
-                <img id="cross" src={paladin} alt="cross">
+                <img  src={paladin} alt="cross">
             </div>
             {/if}
             <div class="column" id="form-column">
@@ -152,12 +172,12 @@ function connect(){
                             <option value={classes.id}>{classes.name}</option>
                             {/each}
                         </select>
-                    </label>
+                    </label>    
                     <div id="class-stats">
-                        <p>HP</p>
-                        <p>ATTACK</p>
-                        <p>MP</p>
-                        <p>SPELLS</p>
+                        <p><strong>HP</strong>:{classes[0]}</p>
+                        <p><strong>ATTACK</strong>: </p>
+                        <p><strong>MP</strong>: </p>
+                        <p><strong>SPELLS</strong>: </p>
                     </div>
                     <label>
                         <strong>Name</strong> 
@@ -166,27 +186,50 @@ function connect(){
                     <label>
                         <button on:click={isNameEmpty} type="submit"> Create character </button>
                     </label>
+                </form>
             </div>
         </div>
         {:else}
-        <div class="row">
-            {#if playerCharacter.character.class === "Warrior"}
-            <div class="column">
-             <img class="character-class" src={warrior} alt="class-img" />
+            {#if !connected || !monsterCharacter}
+            <div class="row">
+                {#if playerCharacter.character.class === "Warrior"}
+                <div class="column">
+                <img class="character-class" src={warrior} alt="class-img" />
+                </div>
+                {:else}
+                <div class="column">
+                <img class="character-class" src={paladin} alt="class-img" />
+                </div>
+                {/if}
             </div>
-            {:else}
-            <div class="column">
-             <img class="character-class" src={paladin} alt="class-img" />
+            <br>
+            <button type="button" on:click|preventDefault={start}>Game start</button>
+            {:else if connected && monsterCharacter && playerCharacter}
+            <div class="row">
+                <div id="class-div" class="column">
+                    <img class="character-class" src={imageMap.get(playerCharacter.character.class)} alt="class-img" />
+                    <p>HP:{playerCharacter.character.hp}</p>
+                    <p>MP:{playerCharacter.character.mp}</p>
+                    <p>ATK:{playerCharacter.character.atk}</p>
+                    <button type="button" on:click={attack}>Attack</button>
+                    <button><strong>MP:{playerCharacter.character.spells.mp_cost}</strong> {playerCharacter.character.spells.name}</button>
+                </div>
+                <div id="game-text" class="column">
+                    <p></p>
+                </div>
+                <div id="class-div" class="column">
+                    <img class="character-class" src={imageMap.get(monsterCharacter.name)} alt="class-img" />
+                    <p>HP:{monsterCharacter.hp}</p>
+                    <p>MP:{monsterCharacter.mp}</p>
+                    <p>ATK:{monsterCharacter.atk}</p>
+                </div>
             </div>
             {/if}
-        </div>
-            <br>
-            <button type="button" on:click|preventDefault={connect}>Game start</button>
         {/if}
     {/if}
 </div>
 
-<style>
+<style >
     .content{
         margin: 0;
         padding: 0%;

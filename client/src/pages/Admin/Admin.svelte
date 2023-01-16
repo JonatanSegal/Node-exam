@@ -35,17 +35,16 @@
     let options = [{id:1, text:'users'},{id:2, text:'classes'}, {id:3, text:'characters'}, {id:4, text:'monsters'},{id:5, text:'spells'}]
     let selected 
     let placeholder = 'Select options'
-    let linkEnd =''
 
     let columns= []
     let rows = []
+    let tableLoaded = false
     
-    function printLink(){
-        console.log(`${$BASE_URL}/api/${selected}`)
-    }
-
     async function getData(){
-        const response = await fetch(`${$BASE_URL}/api/users`,{
+        tableLoaded = false
+        columns =[]
+        rows = []
+        const response = await fetch(`${$BASE_URL}/api/${selected}`,{
             method: "GET",
             credentials: "include"
         })
@@ -56,6 +55,7 @@
 			const key = Object.keys(rows[0])[i]
 			columns.push({key, title: key, value: v => v[key], sortable: true})
 		}
+        tableLoaded = true
     }
 
 
@@ -74,7 +74,7 @@
                 <h2>STOP RIGHT THERE!</h2>
                 <h3>You are not an admin</h3>
             {:else}
-                <select on:change={getData} bind:value={selected} name="class-id" id="class-id" required>
+                <select  bind:value={selected} on:change={getData} name="class-id" id="class-id" required>
                     {#if placeholder}
                     <option value="" disabled selected>{placeholder}</option>
                     {/if}
@@ -83,6 +83,14 @@
                     {/each}
                 </select>
                 <br>
+                {#if tableLoaded }
+                    <SvelteTable 
+                    classNameTable={['my-table']}
+                    classNameThead={['table-head']} 
+                    columns="{columns}" rows="{rows}">
+                    </SvelteTable>
+                {/if}
+                
             {/if}
         {/if}
 </div>
@@ -107,11 +115,4 @@
     img#guard{
         padding-right: 100px;
     }
-    table{
-        align-items: center;
-        display: inline;
-    }
-    tr td:focus {
-		background: #eee;
-	}
 </style>

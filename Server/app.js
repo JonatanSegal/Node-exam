@@ -6,11 +6,11 @@ const app = express()
 
 import http from 'http'
 import {Server} from 'socket.io'
-import { authorizedUser } from './util/socketUtil.js'
 import rateLimit from 'express-rate-limit'
 import session from 'express-session'
 import helmet from 'helmet'
 import cors from 'cors'
+import * as gameService from './services/gameService.js'
 
 
 
@@ -32,12 +32,24 @@ const io = new Server(server,{
 
 io.on("connection", (socket) =>{
     console.log(`A socket connectd on id ${socket.id}`)
-    socket.emit("connected")
-    socket.on('game-start', (data) =>{
-        socket.emit("game-started")
-    })
 
-    io.on("disconnect", () => {
+    socket.emit("connected")
+    socket.on('game-start', async (data) =>{
+
+        const monster = await gameService.generateMonster(data.character)
+        monster.level = data.character.level
+        gameService.setStats(monster)
+
+        console.log(monster)
+        socket.emit("game-started", monster)
+        socket.on("player-attack", async (data) =>{
+            console.log(data)
+        })
+
+    })
+    
+
+    socket.on("disconnect", () => {
         console.log(`Socket ${socket.id} left.`)
     })
 })

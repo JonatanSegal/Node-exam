@@ -25,7 +25,7 @@ router.get("/api/game/character", async(req,res)=>{
     character.level_multiplier = userClass.level_multiplier
 
     const classSpells = await dbService.getSpellsForClass(character.classid)
-    const spells = await dbService.getSpellsOnClass(classSpells)
+    const spells = await dbService.getSpellsOnID(classSpells.spell_id)
 
     character.spells = spells
     gameService.setStats(character)

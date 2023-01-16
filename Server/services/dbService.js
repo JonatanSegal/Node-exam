@@ -48,14 +48,17 @@ export async function getRandomNormalMonster(data){
     return await db.get(`SELECT * FROM monsters WHERE type =? ORDER BY RANDOM() LIMIT 1`, data)
 }
 
-export async function getSpellsOnClass(data) {
-    return await db.get("SELECT * FROM spells WHERE id = ?", data.spell_id)
+export async function getSpellsOnID(data) {
+    return await db.get("SELECT * FROM spells WHERE id = ?", data)
 }
 
 export async function getSpellsForClass(data) {
     return await db.get("SELECT * FROM class_spells WHERE class_id = ?", data)
 }
 
+export async function getSpellsForMonster(data) {
+    return await db.get("SELECT * FROM monster_spells WHERE monster_id = ?", data)
+}
 
 
 
