@@ -75,7 +75,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS monsters (
 db.exec(`CREATE TABLE IF NOT EXISTS spells (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255),
-    mp_cost INTERGER
+    mp_cost INTEGER,
+    value INTEGER
 
 )`)
 
@@ -101,33 +102,48 @@ db.exec(`CREATE TABLE IF NOT EXISTS monster_spells (
 
 //seed the database
 if(isInDeleteMode){
-db.run(`INSERT INTO users (name, email, password, role)
+db.exec(`INSERT INTO users (name, email, password, role)
     VALUES ("Fumio","Fumio@mail.com", "$2b$12$cz207WbhUPTq9aw8v.POGOfK3VV8mvJ.ym08QKYIHyhog86JI9T0u", "admin")`)
 
-db.run(`INSERT INTO classes (name, hp, mp, atk, level_multiplier)
-    VALUES ("Warrior", 120, 40, 10, 1.3)`)
+db.exec(`INSERT INTO classes (name, hp, mp, atk, level_multiplier)
+    VALUES ("Warrior", 120, 40, 10, 1.2)`)
 
-db.run(`INSERT INTO characters (name, level, user_id, xp, class_id)
-    VALUES ("Fumi", 1, 1, 0, 1)`)
+db.exec(`INSERT INTO classes (name, hp, mp, atk, level_multiplier)
+    VALUES ("Paladin", 90, 60, 8, 1.2)`)
 
-db.run(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
+db.exec(`INSERT INTO characters (name, level, user_id, xp, class_id)
+    VALUES ("Fumi", 5, 1, 0, 1)`)
+
+db.exec(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
     VALUES ("Goblin", "normal", 80, 20, 4, 1.15)`)
 
-db.run(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
+db.exec(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
     VALUES ("Slime", "normal", 40, 0, 2, 1.1)`)
 
-db.run(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
-    VALUES ("Dragon", "boss", 140, 80, 12, 1.15)`)
+db.exec(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
+    VALUES ("Dragon", "boss", 140, 80, 12, 1.25)`)
 
-db.run (`INSERT INTO spells (name, mp_cost) 
-    VALUES ("Heavy swing", 15)`)
+db.exec(`INSERT INTO spells (name, mp_cost, value) 
+    VALUES ("Heavy swing", 15, 18)`)
 
-db.run (`INSERT INTO spells (name, mp_cost)
-    VALUES ("Rock throw", 15)`)
+db.exec(`INSERT INTO spells (name, mp_cost, value) 
+    VALUES ("Holy shock", 15, 10)`)
 
-db.run(`INSERT INTO class_spells (spell_id, class_id) 
+db.exec(`INSERT INTO spells (name, mp_cost, value)
+    VALUES ("Rock throw", 15, 8)`)
+
+db.exec(`INSERT INTO spells (name, mp_cost, value)
+    VALUES ("Flame breath", 25, 20)`)
+
+db.exec(`INSERT INTO class_spells (spell_id, class_id) 
     VALUES (1,1)`)
 
-db.run(`INSERT INTO monster_spells (spell_id, monster_id) 
-    VALUES (2,1)`)
+db.exec(`INSERT INTO class_spells (spell_id, class_id) 
+    VALUES (2,2)`)
+    
+db.exec(`INSERT INTO monster_spells (spell_id, monster_id) 
+    VALUES (3,1)`)
+
+db.exec(`INSERT INTO monster_spells (spell_id, monster_id) 
+    VALUES (4,3)`)
 }

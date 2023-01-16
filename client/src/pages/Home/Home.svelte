@@ -1,10 +1,11 @@
 <script>
-
+ import cross from '../../images/util/cross-swords.png'
 </script>
 
 
 <div class="content">
     <h1>Welcome to whacky game</h1>
+    <img src={cross} alt="Cross-swords">
 </div>
 
 <style>

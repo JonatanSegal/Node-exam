@@ -2,7 +2,7 @@ import nodemailer from "nodemailer"
 
 // async..await is not allowed in global scope, must use a wrapper
 export async function signUpMail(receiver, name) {
-    const message = `<b>Congratulations</b> ${name} have successfully signed up for the secret node mandatory 2 adventure.`
+    const message = `<b>Congratulations</b> ${name} have successfully signed up for the exam adventure.`
     // Generate test SMTP service account from ethereal.email
     // Only needed if you don't have a real mail account for testing
     let testAccount = await nodemailer.createTestAccount();
@@ -30,11 +30,11 @@ export async function signUpMail(receiver, name) {
       html: `<p>${message}</p>`, // html body
     });
   
-    console.log("Message sent: %s", info.messageId);
+    //console.log("Message sent: %s", info.messageId);
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
   
     // Preview only available when sending through an Ethereal account
-    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    //console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
     // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
 
     return nodemailer.getTestMessageUrl(info)

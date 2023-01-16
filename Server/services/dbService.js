@@ -4,6 +4,10 @@ export async function getAllUsers() {
     return await db.all(`SELECT * FROM users`)
 }
 
+export async function getAllclasses() {
+    return await db.all(`SELECT * FROM classes`)
+}
+
 export async function getAllCharacters() {
     return await db.all(`SELECT * FROM characters`)
 }
@@ -37,7 +41,7 @@ export async function getClassOnID(data){
 }
 
 export async function getMonsterOnType(data){
-    return await db.get(`SELECT * FROM monsters WHERE type =?`, data.type)
+    return await db.get(`SELECT * FROM monsters WHERE type =?`, data)
 }
 
 export async function getRandomNormalMonster(data){

@@ -1,21 +1,20 @@
-import { Router } from "express"
-import { Server } from "socket.io"
+import { Router } from 'express'
+import { Server } from 'socket.io'
 const router = Router()
 
-import * as gameService from "../services/gameService.js"
-import * as dbService from "../services/dbService.js"
-import { Character } from "../DTO/characterDTO.js"
+import * as gameService from '../services/gameService.js'
+import * as dbService from '../services/dbService.js'
+import { Character } from '../DTO/characterDTO.js'
 
-router.get("/api/character", async(req,res)=>{
+router.get("/api/game/character", async(req,res)=>{
     if(req.session.isLoggedIn !== true){
         return res.status(401).send({message: "You must be logged in to try the game"})
     }
     const userCharacter = await dbService.getCharacterOnUserID(req.session.userID)
     if(userCharacter === undefined){
-        return res.status(404).send({message: "No character found for this user"})
+        return res.status(204).send({message: "No character found for this user"})
     }
     const userClass = await dbService.getClassOnID(userCharacter.class_id)
-    console.log(userClass)
     const character = new Character(userCharacter)
     
     character.classid = userClass.id
@@ -29,17 +28,17 @@ router.get("/api/character", async(req,res)=>{
     const spells = await dbService.getSpellsOnClass(classSpells)
 
     character.spells = spells
-   
-    console.log(character)
+    gameService.setStats(character)
     res.status(200).send({character:
         {
             name: character.name, 
             class: character.class, 
             level: character.level, 
             level_multiplier: character.level_multiplier,
+            hp: character.hp,
+            mp : character.mp,
             xp: character.xp,
             atk: character.atk,
-            mp : character.mp,
             spells:character.spells,
             xp_needed: character.xp_needed,
         }})
@@ -47,13 +46,15 @@ router.get("/api/character", async(req,res)=>{
 
 
 
-router.get("/api/game", async(req,res)=>{
+router.get("/api/game/monster", async(req,res)=>{
     if(req.session.isLoggedIn !== true){
         return res.status(401).send({message: "You must be logged in to try the game"})
     }
     const userCharacter = await dbService.getCharacterOnUserID(req.session.userID)
-    const DATA = await gameService.generateMonster(userCharacter)
-    res.send(DATA)
+    const monster = await gameService.generateMonster(userCharacter)
+    monster.level = userCharacter.level
+    gameService.setStats(monster)
+    res.send(monster)
 })
 
 
@@ -68,7 +69,7 @@ router.post("/api/character", async(req, res) =>{
             const id =  req.session.userID
             const data = req.body
             data.userid = id
-            await res.send(gameService.createCharacter(data))
+            await res.status(200).send(gameService.createCharacter(data))
         }else if(result.user_id === req.session.userID){
             return res.status(403).send({message: "User already has a character"})
         }

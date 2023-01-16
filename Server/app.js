@@ -1,13 +1,18 @@
-import dotenv from "dotenv"
+import dotenv from 'dotenv'
 dotenv.config()
 
-import express from "express"
+import express from 'express'
 const app = express()
 
+import http from 'http'
+import {Server} from 'socket.io'
+import { authorizedUser } from './util/socketUtil.js'
 import rateLimit from 'express-rate-limit'
-import session from "express-session"
-import helmet from "helmet"
-import cors from "cors"
+import session from 'express-session'
+import helmet from 'helmet'
+import cors from 'cors'
+
+
 
 app.use(cors({ credentials: true, origin: true }))
 app.use(express.json())
@@ -16,9 +21,26 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
-  }))
-  app.use(express.static("public"))
+    cookie: { secure: false }}))
+app.use(express.static("public"))
+
+
+const server = http.createServer(app)
+const io = new Server(server,{
+    cors:{credentials: true, origin: true }
+})
+
+io.on("connection", (socket) =>{
+    console.log(`A socket connectd on id ${socket.id}`)
+    socket.emit("connected")
+    socket.on('game-start', (data) =>{
+        socket.emit("game-started")
+    })
+
+    io.on("disconnect", () => {
+        console.log(`Socket ${socket.id} left.`)
+    })
+})
 
 const generalLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
@@ -47,7 +69,7 @@ app.get("*", (req, res) => {
 })
 
 const PORT = 8080 || process.env.PORT
-app.listen(PORT, () => {
-    console.log(`APP is running on: ${PORT}`)
+server.listen(PORT, () => {
+    console.log(`Server is running on: ${PORT}`)
 })
 

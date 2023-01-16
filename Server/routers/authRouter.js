@@ -1,10 +1,10 @@
-import { Router } from "express"
-import db from "../database/connection.js"
-import bcrypt from "bcrypt"
-import { signUpMail } from "../services/emailService.js"
-import { containsNumbers } from "../services/passwordService.js"
-import { User } from "../DTO/userDTO.js"
-import { createUser,getUserOnEmail } from "../services/dbService.js"
+import { Router } from 'express'
+import db from '../database/connection.js'
+import bcrypt from 'bcrypt'
+import { signUpMail } from '../services/emailService.js'
+import { containsNumbers } from '../util/passwordUtil.js'
+import { User } from '../DTO/userDTO.js'
+import { createUser,getUserOnEmail } from '../services/dbService.js'
 
 const saltRounds = 12
 const router = Router()
@@ -15,6 +15,7 @@ router.get("/api/login", (req, res) => {
 
 router.get("/api/logout", (req, res) => {
     req.session.isLoggedIn = false
+    req.session.isAdmin = false
     res.sendStatus(200)
 })
 
@@ -22,7 +23,7 @@ router.get("/api/authorized", (req, res ) => {
     if(req.session.isLoggedIn !== true){
         return res.status(401).send({message: "You are not logged in stay away"})
     }
-        res.status(200).send({message: "Welcome to the secret page only for logged in members"})
+        res.status(200).send({message: "Welcome to the exam adventure"})
 })
 
 //POST - Sign up new user
