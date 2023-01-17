@@ -4,7 +4,7 @@
     import { navigate } from 'svelte-navigator'
     import {BASE_URL,IS_LOGGED_IN} from "../../store/globals"
     import { toast } from "@zerodevx/svelte-toast"
-
+    import Typewriter from 'svelte-typewriter'
 
     import guard from "../../images/util/soldier.png"
     import warrior from "../../images/classes/warrior.png"
@@ -14,7 +14,6 @@
     import dragon from "../../images/monsters/dragon.png"
     
     let connected = false
-    
 
     const imageMap = new Map()
     imageMap.set('Guard', guard)
@@ -31,6 +30,7 @@
     let gameEnded = false
     let playerGametext = ''
     let monsterGametext = ''
+    let wait = false
 
     let classes = []
     let playerDisplayStats = []
@@ -83,8 +83,6 @@
         })
         const responseJSON = await response.json()
         classes = responseJSON
-        console.log(classes)
-        console.log(classes[0].hp)
         loadedClasses =true
  }
 
@@ -134,7 +132,8 @@
     } 
 
       function attack(){
-        console.log("pressed")
+        playerGametext = ""
+        monsterGametext = ""
         if(monsterCharacter.hp >0 ){
           socket.emit("player-action", {"type":'attack', "characterOne" :playerCharacter.character, "characterTwo":monsterCharacter})
          if(playerCharacter.character.hp > 0){
@@ -147,7 +146,8 @@
     }
 
      function spell(){
-        console.log("pressed")
+        playerGametext = ""
+        monsterGametext = ""
         if(monsterCharacter.hp >0 ){
             if( playerCharacter.character.mp > 0){
                  socket.emit("player-action", {"type":'spell', "characterOne" :playerCharacter.character, "characterTwo":monsterCharacter})
@@ -182,7 +182,6 @@
             }
             if(data.mp){
                 if(data.mp > 0){
-                        console.log(data.mp)
                         playerCharacter.character.mp =  data.mp
                     }else{
                     playerCharacter.character.mp = 0
@@ -192,7 +191,6 @@
     })
 
     socket.on("update-after-monster", (data) =>{
-        console.log(data)
         if(playerCharacter.character){
                 if(playerCharacter.character.hp > 0){
                     playerCharacter.character.hp = data.hp
@@ -204,7 +202,6 @@
             }
         if(data.mp){
             if(data.mp > 0){
-                    console.log(data.mp)
                     monsterCharacter.mp =  data.mp
                 }else{
                     monsterCharacter.mp = 0
@@ -328,8 +325,10 @@
                     <p><strong>ATK:</strong> {playerCharacter.character.atk}</p>
                 </div>
                 <div id="game-text" class="column">
-                    <p>{playerGametext}</p>
-                    <p>{monsterGametext}</p>
+                    <Typewriter>
+                        <h3 >{playerGametext}</h3>
+                        <h3 >{monsterGametext}</h3>
+                    </Typewriter>
                 </div>
                 <div id="class-div" class="column">
                     <img class="character-class" src={imageMap.get(monsterCharacter.name)} alt="class-img" />
