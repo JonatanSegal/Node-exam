@@ -1,4 +1,5 @@
 export class Character{
+    userid;
     name;
     level;
     level_multiplier;
@@ -13,6 +14,7 @@ export class Character{
     xp_needed = 100;
 
     constructor(data){
+        this.userid = data.user_id
         this.name = data.name
         this.level = data.level
         this.level_multiplier = data.level_multiplier

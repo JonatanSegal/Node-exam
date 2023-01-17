@@ -1,5 +1,6 @@
 <script>
     import {Router, Link, Route} from "svelte-navigator"
+    import socket from "./service/socketService"
     import {BASE_URL,IS_LOGGED_IN, IS_ADMIN} from "./store/globals"
     import { SvelteToast, toast } from "@zerodevx/svelte-toast"
 
@@ -12,8 +13,8 @@
     import Logo from "./images/util/shield.png"
 
 
-    function logOut() {
-    fetch(`${$BASE_URL}/api/logout`, {
+    async function logOut() {
+     await fetch(`${$BASE_URL}/api/logout`, {
       credentials: "include"
       })
       IS_LOGGED_IN.set(false)

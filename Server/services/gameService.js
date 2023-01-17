@@ -1,4 +1,3 @@
-import db from "../database/connection.js"
 import * as dbService from "./dbService.js"
 import { Character } from "../DTO/characterDTO.js"
 
@@ -41,55 +40,91 @@ export function setStats(character){
     }
 }
 
-export function calculateXP(character){
-    const baseXP = 10
-    if(character.type === "boss"){
-        for(let i = 0; i < character.level; i++){
-        baseXP = baseXP * character.level_multiplier
-        }
+export function calculateXP(monster,player){
+    let baseXP = 10
+    if(monster.type === "boss"){
+        baseXP = player.xp_needed
         return baseXP
     }else{
-        for(let i = 0; i < character.level; i++){
-            baseXP = baseXP * character.level_multiplier
+        for(let i = 0; i < monster.level; i++){
+            baseXP = Math.round(+(baseXP * monster.level_multiplier))
             }
+
         return baseXP
     }
-
 }
 
-export function updateCharacter(character){
-    dbService.updateCharacter(character)
+export function levelUpCheck(player){
+    if(player.xp > player.xp_needed){
+        player.level = player.level + 1
+        player.xp = 0
+        player.xp_needed = player.xp_needed * player.level_multiplier
+        return player
+    }
+    return player
 }
 
-function monsterAction(){
+export async function updateCharacter(character){
+    return await dbService.updateCharacter(character)
+}
 
+export function monsterAction(){
+    const randomNumber = Math.floor(Math.random()*10) + 1
+    if(randomNumber > 2){
+        return 'attack'
+    }else{
+        return 'spell'
+    }
 }
 
 export function action(action){
-    switch (action[0]){
+    switch (action.type){
         
         case 'attack':{
-            let hp = action[2].hp
+            let hp = action.characterTwo.hp
             //console.log(" HP before " + HP)
             //console.log("attack action")
-            hp = hp - action[1].atk
+            hp = hp - action.characterOne.atk
             //console.log("HP after " +HP)
-            return {"hp":hp}
+            if(hp < 0){
+                hp = 0
+            }
+            let message = `${action.characterOne.name} dealt ${action.characterOne.atk} to ${action.characterTwo.name}`
+            return {"hp":hp, "message":message}
         }
     
         case 'spell':{
-            let hp = action[2].hp
-            let mp = action[1].mp
-            if(action[1].spells.name === "Holy shock"){
-                let healHP = action[1].hp
-                hp = hp - action[1].spells.value
-                healHP = healHP + Math.round(+(action[1].spells.value/2))
-                mp = mp - action[1].spells.mp_cost
-                return {"hp":hp, "mp":mp, "heal":healHP}
+            let hp = action.characterTwo.hp
+            let mp = action.characterOne.mp
+            let message
+            if(action.characterOne.spells.name === "Holy shock"){
+                let healHP = action.characterOne.hp
+                let healValue = Math.round(+(action.characterOne.spells.value/2))
+                hp = hp - action.characterOne.spells.value
+                healHP = healHP + healValue
+                mp = mp - action.characterOne.spells.mp_cost
+                if(hp < 0){
+                    hp = 0
+                }
+                if(mp < 0){
+                    mp = -1
+                }
+                message = `${action.characterOne.name} used ${action.characterOne.spells.name} 
+                on ${action.characterTwo.name} it dealt ${action.characterOne.spells.value} damage
+                and healed ${action.characterOne.name} for ${healValue}`
+                return {"hp":hp, "mp":mp, "heal":healHP, "message":message}
             }else{
-                hp = hp - action[1].spells.value
-                mp = mp - action[1].spells.mp_cost
-                return {"hp":hp, "mp":mp}
+                hp = hp - action.characterOne.spells.value
+                mp = mp - action.characterOne.spells.mp_cost
+                if(hp < 0){
+                    hp = 0
+                }
+                if(mp < 0){
+                    mp = -1
+                }
+                message =`${action.characterOne.name} used ${action.characterOne.spells.name} 
+                on ${action.characterTwo.name} it dealt ${action.characterOne.spells.value} damage`
+                return {"hp":hp, "mp":mp, "message":message}
             }
         }
     }    

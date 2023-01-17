@@ -11,6 +11,7 @@ import session from 'express-session'
 import helmet from 'helmet'
 import cors from 'cors'
 import * as gameService from './services/gameService.js'
+import * as dbService from './services/dbService.js'
 
 
 
@@ -33,33 +34,46 @@ const io = new Server(server,{
 io.on("connection", (socket) =>{
     console.log(`A socket connectd on id ${socket.id}`)
 
-    socket.emit("connected")
-    socket.on('game-start', async (data) =>{
 
-        const monster = await gameService.generateMonster(data.character)
-        monster.level = data.character.level
-        gameService.setStats(monster)
+    
+        socket.on('game-start',  async(data) =>{
 
-        //console.log(monster)
-        socket.emit("game-started", monster)
-        socket.on("player-action", async (data) =>{
+            const monster =  await gameService.generateMonster(data.character)
+            monster.level = data.character.level
+            gameService.setStats(monster)
+            socket.emit("game-started", monster)
+        })
+
+        socket.on("player-action",  (data) =>{
             const values = gameService.action(data)
             //console.log(values)
-            socket.emit("update-stats", values)
+            socket.emit("update-after-player", values)
         })
         
-
-    })
+        socket.on("monster-action",  async (data)=>{
+            const type = gameService.monsterAction()
+            data.type = type
+            const values = gameService.action(data)
+            await socket.emit("update-after-monster", values)
+        })
+        socket.on("game-won", async(data) =>{
+            const xp = gameService.calculateXP(data.monster, data.player)
+            data.player.xp = data.player.xp + xp
+            data.player = gameService.levelUpCheck(data.player)
+            await dbService.updateCharacter(data.player)
+        })
     
 
     socket.on("disconnect", () => {
+        socket.removeAllListeners()
+        socket.disconnect()
         console.log(`Socket ${socket.id} left.`)
     })
 })
 
 const generalLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
-    max: 80,
+    max: 150,
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 })
@@ -76,6 +90,7 @@ app.use(adminRouter)
 import authRouter from "./routers/authRouter.js"
 app.use(authRouter)
 import gameRouter from "./routers/gameRouter.js"
+import { updateCharacter } from './services/dbService.js'
 app.use(gameRouter)
 
 

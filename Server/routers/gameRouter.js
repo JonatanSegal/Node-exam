@@ -31,6 +31,7 @@ router.get("/api/game/character", async(req,res)=>{
     gameService.setStats(character)
     res.status(200).send({character:
         {
+            userid: character.userid,
             name: character.name, 
             class: character.class, 
             level: character.level, 

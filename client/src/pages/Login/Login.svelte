@@ -33,8 +33,15 @@
                 } 
                 })
                 return
-            }
-            else if(response.status !== 200) {
+            }else if(response.status === 404){
+                toast.push("User not found", {
+                    theme: {
+                        '--toastColor': 'white',
+                        '--toastBackground': '#a60202',
+                        '--toastBarBackground': '#570404'
+                }})
+                return 
+            }else if(response.status !== 200) {
                 toast.push("Wrong email or password", {
                     theme: {
                         '--toastColor': 'white',

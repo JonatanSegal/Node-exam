@@ -106,10 +106,10 @@ db.exec(`INSERT INTO users (name, email, password, role)
     VALUES ("Fumio","Fumio@mail.com", "$2b$12$cz207WbhUPTq9aw8v.POGOfK3VV8mvJ.ym08QKYIHyhog86JI9T0u", "admin")`)
 
 db.exec(`INSERT INTO classes (name, hp, mp, atk, level_multiplier)
-    VALUES ("Warrior", 120, 40, 10, 1.2)`)
+    VALUES ("Warrior", 130, 40, 14, 1.2)`)
 
 db.exec(`INSERT INTO classes (name, hp, mp, atk, level_multiplier)
-    VALUES ("Paladin", 90, 60, 8, 1.2)`)
+    VALUES ("Paladin", 110, 60, 12, 1.2)`)
 
 db.exec(`INSERT INTO characters (name, level, user_id, xp, class_id)
     VALUES ("Fumi", 5, 1, 0, 1)`)
@@ -121,7 +121,7 @@ db.exec(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
     VALUES ("Slime", "normal", 40, 0, 2, 1.1)`)
 
 db.exec(`INSERT INTO monsters (name, type, hp, mp, atk, level_multiplier)
-    VALUES ("Dragon", "boss", 140, 80, 12, 1.25)`)
+    VALUES ("Dragon", "boss", 110, 80, 10, 1.25)`)
 
 db.exec(`INSERT INTO spells (name, mp_cost, value) 
     VALUES ("Heavy swing", 15, 18)`)

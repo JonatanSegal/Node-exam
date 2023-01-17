@@ -67,7 +67,7 @@ export async function updateUser(data){
 }
 
 export async function updateCharacter(data){
-    return await db.run(`UPDATE characters SET xp=?, level=? WHERE id=?`,[data.xp, data.level, data.classid] )
+    return await db.run(`UPDATE characters SET xp=?, level=? WHERE user_id=?`,[data.xp, data.level, data.userid] )
 }
 
 export async function createUser(data){

@@ -1,5 +1,4 @@
 <script>
-    //import {io} from "socket.io-client"
     import socket from "../../util/socketConnection"
     import {onMount} from "svelte"
     import { navigate } from 'svelte-navigator'
@@ -15,6 +14,7 @@
     import dragon from "../../images/monsters/dragon.png"
     
     let connected = false
+    
 
     const imageMap = new Map()
     imageMap.set('Guard', guard)
@@ -28,6 +28,9 @@
     let monsterCharacter
     let hasCharacter = false
     let loadedClasses = false
+    let gameEnded = false
+    let playerGametext = ''
+    let monsterGametext = ''
 
     let classes = []
     let playerDisplayStats = []
@@ -49,9 +52,7 @@
             return 
         }
     }
-    onMount(loginCheck)
 
- if($IS_LOGGED_IN.valueOf() === true) {  
     async function getCharacter(){
         const response = await fetch(`${$BASE_URL}/api/game/character`,{
             method: "GET",
@@ -68,6 +69,9 @@
             getClasses()
         }
     }
+    onMount(loginCheck)
+
+ if($IS_LOGGED_IN.valueOf() === true) {  
    onMount(getCharacter) 
  }
 
@@ -110,6 +114,7 @@
             toast.push(`Character created`,{
                 duration: 6000
             })
+            getCharacter()
             navigate("/game", { replace: false })
             }
     }
@@ -128,47 +133,117 @@
         }
     } 
 
-     async function attack(){
+      function attack(){
         console.log("pressed")
-        await socket.emit("player-action", ['attack',playerCharacter.character, monsterCharacter])
+        if(monsterCharacter.hp >0 ){
+          socket.emit("player-action", {"type":'attack', "characterOne" :playerCharacter.character, "characterTwo":monsterCharacter})
+         if(playerCharacter.character.hp > 0){
+             socket.emit("monster-action", {"characterOne" :monsterCharacter, "characterTwo":playerCharacter.character})
+             checkGameEnd()
+         }
+        }else{
+            toast.push("It's already dead")
+        }
     }
 
-    async function spell(){
+     function spell(){
         console.log("pressed")
-        await socket.emit("player-action", ['spell',playerCharacter.character, monsterCharacter])
+        if(monsterCharacter.hp >0 ){
+            if( playerCharacter.character.mp > 0){
+                 socket.emit("player-action", {"type":'spell', "characterOne" :playerCharacter.character, "characterTwo":monsterCharacter})
+                if(playerCharacter.character.hp > 0){
+                     socket.emit("monster-action", {"characterOne" :monsterCharacter, "characterTwo":playerCharacter.character})
+                     checkGameEnd()
+            }
+            }else{
+                playerCharacter.character.mp = 0
+                toast.push('Not enough mana')
+            }
+        }else{
+            toast.push("It's already dead")
+        }
     }
 
-     socket.on("update-stats" , (data) =>{
-            console.log(data)
+     socket.on("update-after-player" , (data) =>{
             if(monsterCharacter){
                 if(monsterCharacter.hp > 0){
                     monsterCharacter.hp = data.hp
+                    checkGameEnd()
                 }else{
                     monsterCharacter.hp = 0
                 }
             }
-            if(data.healHP){
-                playerCharacter.character.hp = data.healHP
+            if(data.heal){
+                if(playerCharacter.character.hp >= playerDisplayStats[0]){
+                    playerCharacter.character.hp = playerDisplayStats[0]
+                }else{
+                    playerCharacter.character.hp = data.heal
+                }
             }
             if(data.mp){
-                playerCharacter.character.mp = data.mp
+                if(data.mp > 0){
+                        console.log(data.mp)
+                        playerCharacter.character.mp =  data.mp
+                    }else{
+                    playerCharacter.character.mp = 0
+                }
             }
+            playerGametext = data.message
+    })
+
+    socket.on("update-after-monster", (data) =>{
+        console.log(data)
+        if(playerCharacter.character){
+                if(playerCharacter.character.hp > 0){
+                    playerCharacter.character.hp = data.hp
+                    checkGameEnd()
+                }else{
+                    playerCharacter.character.hp = 0
+                    
+                }
+            }
+        if(data.mp){
+            if(data.mp > 0){
+                    console.log(data.mp)
+                    monsterCharacter.mp =  data.mp
+                }else{
+                    monsterCharacter.mp = 0
+            }
+        }
+        monsterGametext = data.message
     })
 
     function start(){   
+        gameEnded =false
         if(socket.connected){
             connected = true
         }
-        socket.on("connect_error", () => {
-            connected = false
-        })
-
-        socket.on("game-started", (data) =>{
+        socket.on("game-started",(data) =>{
+            getCharacter()
             monsterCharacter = data
             monsterDisplayStats = [data.hp, data.mp] 
-            console.log("game started")
-        })
+         })
         socket.emit("game-start",  playerCharacter)
+    }
+
+    function newMonster(){
+        gameEnded =false
+        start()
+    }
+
+    function checkGameEnd(){
+        if(monsterCharacter.hp === 0){
+                toast.push("You won")
+                socket.emit("game-won", {"player":playerCharacter.character,"monster": monsterCharacter})
+                return gameEnded = true
+        }
+        if(playerCharacter.character.hp === 0){
+                toast.push("You lost")
+                return gameEnded = true
+        }else{
+            gameEnded = false
+            return gameEnded
+        }
     }
 
 
@@ -234,22 +309,27 @@
                 <img class="character-class" src={paladin} alt="class-img" />
                 </div>
                 {/if}
+                <div id="class-div" class="column">
+                    <p><strong>LEVEL:</strong> {playerCharacter.character.level}</p>
+                    <p><strong>HP:</strong> {playerCharacter.character.hp}</p>
+                    <p><strong>MP:</strong> {playerCharacter.character.mp}</p>
+                    <p><strong>ATK:</strong> {playerCharacter.character.atk}</p>
+                    <button type="button" on:click|preventDefault={start}>Game start</button>
+                </div>
             </div>
-            <br>
-            <button type="button" on:click|preventDefault={start}>Game start</button>
             {:else if connected && monsterCharacter && playerCharacter && playerDisplayStats && monsterDisplayStats}
             <div class="row">
                 <div id="class-div" class="column">
                     <img class="character-class" src={imageMap.get(playerCharacter.character.class)} alt="class-img" />
                     <p><strong>LEVEL:</strong> {playerCharacter.character.level}</p>
+                    <p><strong>XP:</strong> {playerCharacter.character.xp}/ {playerCharacter.character.xp_needed}</p>
                     <p><strong>HP:</strong> {playerCharacter.character.hp}/{playerDisplayStats[0]}</p>
                     <p><strong>MP:</strong> {playerCharacter.character.mp}/{playerDisplayStats[1]}</p>
                     <p><strong>ATK:</strong> {playerCharacter.character.atk}</p>
                 </div>
                 <div id="game-text" class="column">
-                    <p></p>
-                    <button type="button" on:click={attack}>Attack</button>
-                    <button type="button" on:click={spell}><strong>MP:{playerCharacter.character.spells.mp_cost}</strong> {playerCharacter.character.spells.name}</button>
+                    <p>{playerGametext}</p>
+                    <p>{monsterGametext}</p>
                 </div>
                 <div id="class-div" class="column">
                     <img class="character-class" src={imageMap.get(monsterCharacter.name)} alt="class-img" />
@@ -258,6 +338,17 @@
                     <p><strong>MP:</strong> {monsterCharacter.mp}/{monsterDisplayStats[1]}</p>
                     <p><strong>ATK:</strong> {monsterCharacter.atk}</p>
                 </div>
+            </div>
+            <div class="row">
+                <div  class="column"></div>
+                <div class="column">
+                    <button disabled={gameEnded} type="button" on:click={attack}>Attack</button>
+                    <button disabled={gameEnded} type="button" on:click={spell}><strong>MP:{playerCharacter.character.spells.mp_cost}</strong> {playerCharacter.character.spells.name}</button>
+                    {#if gameEnded}
+                    <button type="button" on:click|preventDefault={newMonster}>Find new monster</button>
+                    {/if}
+                </div>
+                <div class="column"></div>
             </div>
             {/if}
         {/if}
