@@ -1,6 +1,5 @@
 <script>
     import {Router, Link, Route} from "svelte-navigator"
-    import socket from "./service/socketService"
     import {BASE_URL,IS_LOGGED_IN, IS_ADMIN} from "./store/globals"
     import { SvelteToast, toast } from "@zerodevx/svelte-toast"
 

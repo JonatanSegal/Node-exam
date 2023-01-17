@@ -32,10 +32,7 @@ const io = new Server(server,{
 })
 
 io.on("connection", (socket) =>{
-    console.log(`A socket connectd on id ${socket.id}`)
 
-
-    
         socket.on('game-start',  async(data) =>{
 
             const monster =  await gameService.generateMonster(data.character)
@@ -46,7 +43,6 @@ io.on("connection", (socket) =>{
 
         socket.on("player-action",  (data) =>{
             const values = gameService.action(data)
-            //console.log(values)
             socket.emit("update-after-player", values)
         })
         
@@ -62,12 +58,10 @@ io.on("connection", (socket) =>{
             data.player = gameService.levelUpCheck(data.player)
             await dbService.updateCharacter(data.player)
         })
-    
 
     socket.on("disconnect", () => {
         socket.removeAllListeners()
         socket.disconnect()
-        console.log(`Socket ${socket.id} left.`)
     })
 })
 
@@ -90,7 +84,6 @@ app.use(adminRouter)
 import authRouter from "./routers/authRouter.js"
 app.use(authRouter)
 import gameRouter from "./routers/gameRouter.js"
-import { updateCharacter } from './services/dbService.js'
 app.use(gameRouter)
 
 
