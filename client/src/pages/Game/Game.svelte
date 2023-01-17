@@ -30,6 +30,8 @@
     let loadedClasses = false
 
     let classes = []
+    let playerDisplayStats = []
+    let monsterDisplayStats = []
 
     let name =''
     let classid = 1
@@ -59,6 +61,7 @@
             const responseJSON = await response.json()
             hasCharacter = true
             playerCharacter = responseJSON
+            playerDisplayStats = [responseJSON.character.hp, responseJSON.character.mp]
         }
         if(response.status === 204){
             toast.push("Looks like you don't have character lets fix that")
@@ -67,6 +70,7 @@
     }
    onMount(getCharacter) 
  }
+
  async function getClasses(){
     loadedClasses = false
     const response = await fetch(`${$BASE_URL}/api/game/classes`,{
@@ -124,15 +128,32 @@
         }
     } 
 
-    function attack(){
+     async function attack(){
         console.log("pressed")
-        socket.emit("player-action", ['attack',playerCharacter.character, monsterCharacter])
+        await socket.emit("player-action", ['attack',playerCharacter.character, monsterCharacter])
     }
 
-    function spell(){
+    async function spell(){
         console.log("pressed")
-        socket.emit("player-action", ['spell',playerCharacter.character, monsterCharacter])
+        await socket.emit("player-action", ['spell',playerCharacter.character, monsterCharacter])
     }
+
+     socket.on("update-stats" , (data) =>{
+            console.log(data)
+            if(monsterCharacter){
+                if(monsterCharacter.hp > 0){
+                    monsterCharacter.hp = data.hp
+                }else{
+                    monsterCharacter.hp = 0
+                }
+            }
+            if(data.healHP){
+                playerCharacter.character.hp = data.healHP
+            }
+            if(data.mp){
+                playerCharacter.character.mp = data.mp
+            }
+    })
 
     function start(){   
         if(socket.connected){
@@ -144,6 +165,7 @@
 
         socket.on("game-started", (data) =>{
             monsterCharacter = data
+            monsterDisplayStats = [data.hp, data.mp] 
             console.log("game started")
         })
         socket.emit("game-start",  playerCharacter)
@@ -215,13 +237,14 @@
             </div>
             <br>
             <button type="button" on:click|preventDefault={start}>Game start</button>
-            {:else if connected && monsterCharacter && playerCharacter}
+            {:else if connected && monsterCharacter && playerCharacter && playerDisplayStats && monsterDisplayStats}
             <div class="row">
                 <div id="class-div" class="column">
                     <img class="character-class" src={imageMap.get(playerCharacter.character.class)} alt="class-img" />
-                    <p>HP:{playerCharacter.character.hp}</p>
-                    <p>MP:{playerCharacter.character.mp}</p>
-                    <p>ATK:{playerCharacter.character.atk}</p>
+                    <p><strong>LEVEL:</strong> {playerCharacter.character.level}</p>
+                    <p><strong>HP:</strong> {playerCharacter.character.hp}/{playerDisplayStats[0]}</p>
+                    <p><strong>MP:</strong> {playerCharacter.character.mp}/{playerDisplayStats[1]}</p>
+                    <p><strong>ATK:</strong> {playerCharacter.character.atk}</p>
                 </div>
                 <div id="game-text" class="column">
                     <p></p>
@@ -230,9 +253,10 @@
                 </div>
                 <div id="class-div" class="column">
                     <img class="character-class" src={imageMap.get(monsterCharacter.name)} alt="class-img" />
-                    <p>HP:{monsterCharacter.hp}</p>
-                    <p>MP:{monsterCharacter.mp}</p>
-                    <p>ATK:{monsterCharacter.atk}</p>
+                    <p><strong>LEVEL:</strong> {monsterCharacter.level}</p>
+                    <p><strong>HP:</strong> {monsterCharacter.hp}/{monsterDisplayStats[0]}</p>
+                    <p><strong>MP:</strong> {monsterCharacter.mp}/{monsterDisplayStats[1]}</p>
+                    <p><strong>ATK:</strong> {monsterCharacter.atk}</p>
                 </div>
             </div>
             {/if}

@@ -66,6 +66,10 @@ export async function updateUser(data){
     return await db.run(`UPDATE users SET name=?, email=?, password=?, role=? WHERE id=?`,[data.name, data.email, data.password, data.role, data.userid] )
 }
 
+export async function updateCharacter(data){
+    return await db.run(`UPDATE characters SET xp=?, level=? WHERE id=?`,[data.xp, data.level, data.classid] )
+}
+
 export async function createUser(data){
 return await db.run(`INSERT INTO users(name, email, password, role) VALUES (?,?,?,?) `,[data.name, data.email, data.password, "user"])
 }

@@ -43,8 +43,11 @@ io.on("connection", (socket) =>{
         //console.log(monster)
         socket.emit("game-started", monster)
         socket.on("player-action", async (data) =>{
-            gameService.action(data)
+            const values = gameService.action(data)
+            //console.log(values)
+            socket.emit("update-stats", values)
         })
+        
 
     })
     

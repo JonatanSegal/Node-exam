@@ -41,6 +41,26 @@ export function setStats(character){
     }
 }
 
+export function calculateXP(character){
+    const baseXP = 10
+    if(character.type === "boss"){
+        for(let i = 0; i < character.level; i++){
+        baseXP = baseXP * character.level_multiplier
+        }
+        return baseXP
+    }else{
+        for(let i = 0; i < character.level; i++){
+            baseXP = baseXP * character.level_multiplier
+            }
+        return baseXP
+    }
+
+}
+
+export function updateCharacter(character){
+    dbService.updateCharacter(character)
+}
+
 function monsterAction(){
 
 }
@@ -48,18 +68,30 @@ function monsterAction(){
 export function action(action){
     switch (action[0]){
         
-        case 'attack':
-            let monsterHP = action[2].hp
-            console.log("Monster hp before " + monsterHP)
-            console.log("attack action")
-            monsterHP = monsterHP - action[1].atk
-            console.log("Monster hp after " +monsterHP)
-            break
-
-        case 'spell':
-            console.log(action[1].spells.value)
-            console.log("Use spell")
-            break
+        case 'attack':{
+            let hp = action[2].hp
+            //console.log(" HP before " + HP)
+            //console.log("attack action")
+            hp = hp - action[1].atk
+            //console.log("HP after " +HP)
+            return {"hp":hp}
+        }
+    
+        case 'spell':{
+            let hp = action[2].hp
+            let mp = action[1].mp
+            if(action[1].spells.name === "Holy shock"){
+                let healHP = action[1].hp
+                hp = hp - action[1].spells.value
+                healHP = healHP + Math.round(+(action[1].spells.value/2))
+                mp = mp - action[1].spells.mp_cost
+                return {"hp":hp, "mp":mp, "heal":healHP}
+            }else{
+                hp = hp - action[1].spells.value
+                mp = mp - action[1].spells.mp_cost
+                return {"hp":hp, "mp":mp}
+            }
+        }
     }    
 }
 
