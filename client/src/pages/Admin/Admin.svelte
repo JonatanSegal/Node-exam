@@ -1,4 +1,6 @@
 <script>
+// @ts-nocheck
+
     import {BASE_URL, IS_ADMIN, IS_LOGGED_IN} from "../../store/globals"
     import { toast } from "@zerodevx/svelte-toast"
     import {onMount} from "svelte"
@@ -50,10 +52,9 @@
         })
         const responseJSON = await response.json()
         rows = responseJSON
-        console.log(rows)
 		for (var i = 0; i < Object.keys(rows[0]).length; i++) {
 			const key = Object.keys(rows[0])[i]
-			columns.push({key, title: key, value: v => v[key], sortable: true})
+			columns.push({key, title: key, value: v => v[key], sortable: true,})
 		}
         tableLoaded = true
     }
@@ -84,11 +85,11 @@
                 </select>
                 <br>
                 {#if tableLoaded }
+                <div class="my-svelte-table">  
                     <SvelteTable 
-                    classNameTable={['my-table']}
-                    classNameThead={['table-head']} 
-                    columns="{columns}" rows="{rows}">
+                    columns="{columns}" rows="{rows}" contenteditable ="true">
                     </SvelteTable>
+                </div> 
                 {/if}
                 
             {/if}
@@ -96,6 +97,23 @@
 </div>
 
 <style>
+    :global(.my-svelte-table){
+        display: flex;
+        width: 75%;
+        margin-left: auto;
+        margin-right: auto;   
+    }
+    :global(.my-svelte-table th){
+        border:#312200 5px;
+        text-align: center;
+        padding: 5px;
+    }
+    :global(.my-svelte-table td){
+        text-align: center;
+        padding: 5px;
+        background-color: #312200;
+        box-shadow: 0 4px 2px -2px rgba(0,0,0,.2)
+    }
     .content{
         margin: 0;
         padding: 0%;

@@ -27,6 +27,7 @@
     let playerCharacter
     let monsterCharacter
     let hasCharacter = false
+    let loadedClasses = false
 
     let classes = []
 
@@ -67,13 +68,16 @@
    onMount(getCharacter) 
  }
  async function getClasses(){
-    const response = await fetch(`${$BASE_URL}/api/classes`,{
+    loadedClasses = false
+    const response = await fetch(`${$BASE_URL}/api/game/classes`,{
             method: "GET",
             credentials: "include"
         })
         const responseJSON = await response.json()
         classes = responseJSON
         console.log(classes)
+        console.log(classes[0].hp)
+        loadedClasses =true
  }
 
  async function createCharacter(){
@@ -122,7 +126,12 @@
 
     function attack(){
         console.log("pressed")
-        socket.emit("player-attack", [playerCharacter.character.atk, monsterCharacter.hp])
+        socket.emit("player-action", ['attack',playerCharacter.character, monsterCharacter])
+    }
+
+    function spell(){
+        console.log("pressed")
+        socket.emit("player-action", ['spell',playerCharacter.character, monsterCharacter])
     }
 
     function start(){   
@@ -174,10 +183,12 @@
                         </select>
                     </label>    
                     <div id="class-stats">
-                        <p><strong>HP</strong>:{classes[0]}</p>
-                        <p><strong>ATTACK</strong>: </p>
-                        <p><strong>MP</strong>: </p>
-                        <p><strong>SPELLS</strong>: </p>
+                        {#if loadedClasses}
+                        <p><strong>HP</strong>:{classes[classid-1].hp}</p>
+                        <p><strong>ATTACK</strong>:{classes[classid-1].atk} </p>
+                        <p><strong>MP</strong>: {classes[classid-1].mp}</p>
+                        <p><strong>SPELLS</strong>: {classes[classid-1].spells.name} <i>MP:{classes[classid-1].spells.mp_cost}</i> </p>
+                        {/if}
                     </div>
                     <label>
                         <strong>Name</strong> 
@@ -211,11 +222,11 @@
                     <p>HP:{playerCharacter.character.hp}</p>
                     <p>MP:{playerCharacter.character.mp}</p>
                     <p>ATK:{playerCharacter.character.atk}</p>
-                    <button type="button" on:click={attack}>Attack</button>
-                    <button><strong>MP:{playerCharacter.character.spells.mp_cost}</strong> {playerCharacter.character.spells.name}</button>
                 </div>
                 <div id="game-text" class="column">
                     <p></p>
+                    <button type="button" on:click={attack}>Attack</button>
+                    <button type="button" on:click={spell}><strong>MP:{playerCharacter.character.spells.mp_cost}</strong> {playerCharacter.character.spells.name}</button>
                 </div>
                 <div id="class-div" class="column">
                     <img class="character-class" src={imageMap.get(monsterCharacter.name)} alt="class-img" />
@@ -263,6 +274,7 @@
         justify-content: center;
         align-content: center;
         align-items: center;
+        text-align: left;
     }
 
     div#form-column{
@@ -296,4 +308,8 @@
         border-color:#312200;
         color: #312200;
     }
+    .character-class{
+        max-width: 80%;
+    }
+
 </style>

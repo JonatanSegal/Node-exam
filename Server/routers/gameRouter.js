@@ -44,6 +44,14 @@ router.get("/api/game/character", async(req,res)=>{
         }})
 })
 
+router.get("/api/game/classes", async (req, res) =>{
+    const DATA = await dbService.getAllclasses()
+    for(let i = 0 ; i < DATA.length; i++){
+    const spells = await dbService.getSpellsOnID(DATA[i].id)
+    DATA[i].spells = spells
+    }
+    res.send(DATA)
+})
 
 
 router.get("/api/game/monster", async(req,res)=>{

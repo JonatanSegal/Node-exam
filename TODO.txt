@@ -3,12 +3,11 @@ What you can do:
 - Login
 - Create character
 - Generate  boss monster
-
-What need to be done:
-- Generate normal monster
 - Start game 
 - Secrue game 
     - if no character
     - if not logged in
+
+What need to be done:
 - Game actions
 - Admin options

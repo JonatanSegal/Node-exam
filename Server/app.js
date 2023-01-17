@@ -40,10 +40,10 @@ io.on("connection", (socket) =>{
         monster.level = data.character.level
         gameService.setStats(monster)
 
-        console.log(monster)
+        //console.log(monster)
         socket.emit("game-started", monster)
-        socket.on("player-attack", async (data) =>{
-            console.log(data)
+        socket.on("player-action", async (data) =>{
+            gameService.action(data)
         })
 
     })

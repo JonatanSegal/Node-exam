@@ -32,6 +32,7 @@ export function setStats(character){
         character.hp = Math.round( +(character.hp * character.level_multiplier))
         character.mp = Math.round(+(character.mp * character.level_multiplier))
         character.atk = Math.round(+(character.atk * character.level_multiplier))
+        character.spells.value = Math.round(+(character.spells.value * character.level_multiplier))
         character.xp_needed = Math.round(+(character.xp_needed * character.level_multiplier))
        }
        return character
@@ -40,8 +41,26 @@ export function setStats(character){
     }
 }
 
+function monsterAction(){
+
+}
+
 export function action(action){
-    
+    switch (action[0]){
+        
+        case 'attack':
+            let monsterHP = action[2].hp
+            console.log("Monster hp before " + monsterHP)
+            console.log("attack action")
+            monsterHP = monsterHP - action[1].atk
+            console.log("Monster hp after " +monsterHP)
+            break
+
+        case 'spell':
+            console.log(action[1].spells.value)
+            console.log("Use spell")
+            break
+    }    
+}
 
  
-}
